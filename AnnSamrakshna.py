@@ -11,13 +11,15 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.core.window import Window
 import webbrowser
 import firebase_admin
-from firebase_admin import credentials, db
+from firebase_admin import credentials, db, firestore
 from firebase_admin import credentials, storage
 from functools import partial
 from kivymd.toast import toast
 import bcrypt
 from kivy.clock import Clock
 import time
+from kivymd.uix.datatables import MDDataTable
+from kivy.metrics import dp
 from kivy.clock import mainthread
 from kivymd.uix.list import IconLeftWidget
 from kivy.app import App
@@ -50,6 +52,7 @@ MDNavigationLayout:
         ViewDonationsScreen:
         ViewNGOsScreen:
         ViewDetailNgoScreen:
+        ViewDonationHistory:
         
         HomeNGOScreen:
         ViewDonationsNgoScreen:
@@ -345,6 +348,12 @@ MDNavigationLayout:
                 icon: "face-man-profile"
                 md_bg_color: 235/255, 220/255, 199/255, 1
                 on_release: root.navigate_to_profile(); nav_drawer_donor.set_state("close")
+
+            MDNavigationDrawerItem:
+                text: "Donation History"
+                icon: "receipt-text"
+                md_bg_color: 235/255, 220/255, 199/255, 1
+                on_release: app.change_screen('donation_history'); nav_drawer_donor.set_state("close")
             
             MDNavigationDrawerItem:
                 text: "Donate Food"
@@ -381,9 +390,10 @@ MDNavigationLayout:
                 icon: "logout"
                 md_bg_color: 235/255, 220/255, 199/255, 1
                 on_release: root.logout(); 
+            
+            
 
-
-          
+       
 <DonateFoodScreen>:
     name: 'donate_food'
     BoxLayout:
@@ -429,7 +439,24 @@ MDNavigationLayout:
             ScrollView:
                 MDList:
                     id: donation_list
-                
+
+<ViewDonationHistory>:
+    name: "donation_history"
+
+    BoxLayout:
+        orientation: "vertical"
+        
+
+        MDTopAppBar:
+            title: "Donation History"
+            md_bg_color: 205/255, 133/255, 63/255,
+            left_action_items: [["arrow-left", lambda x: app.change_screen('home_donor' )]]
+
+        ScrollView:
+            MDList:
+                id: donation_list
+
+
 <ViewNGOsScreen>:
     name: 'view_ngos'
     BoxLayout:
@@ -1057,6 +1084,56 @@ class ViewDonationsScreen(Screen):
         else:
             self.ids.donation_list.add_widget(OneLineListItem(text="No donations available."))
 
+
+class ViewDonationHistory(Screen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.user_name = None  
+
+    def on_enter(self):
+        """This runs when the screen is entered."""
+        self.user_name = self.get_current_user_name()  
+        self.load_donation_history()
+
+    def get_current_user_name(self):
+        """Fetch the currently logged-in user's username from the main app."""
+        app = MDApp.get_running_app()  # ✅ Get instance of AnnSamrakshnaApp
+        return app.current_user_id  # ✅ Fetch the stored username
+
+    def load_donation_history(self):
+        """Fetch and display donation history."""
+        user_name = self.user_name  # ✅ Use stored username
+        if not user_name:
+            print("⚠️ Username is missing!")
+            return
+
+        donations = self.get_donation_history(user_name)
+
+        donation_list = self.ids.donation_list  # ✅ Get the list view
+        donation_list.clear_widgets()
+
+        if not donations:
+            donation_list.add_widget(OneLineListItem(text="No donation history found."))
+            return
+
+        for food_type, quantity, status, location, timestamp in donations:
+            donation_text = f"{food_type} - {quantity} - {status} - {location} - {timestamp}"
+            donation_list.add_widget(OneLineListItem(text=donation_text))
+
+    def get_donation_history(self, user_name):
+        """Fetch donation history from Firebase Realtime Database using user_name."""
+        donations_ref = db.reference("donations")
+        donations = donations_ref.order_by_child("donor_name").equal_to(user_name.strip()).get()
+
+        if not donations:
+            return []
+
+        return [(data.get("food_type", "N/A"), 
+                 data.get("quantity", "N/A"), 
+                 data.get("status", "N/A"), 
+                 data.get("location", "N/A"),
+                 data.get("timestamp", "No Date")) for key, data in donations.items()]
+
 class ViewNGOsScreen(Screen):
     def on_pre_enter(self):
         self.fetch_ngos()
@@ -1473,6 +1550,13 @@ class GalleryScreen(Screen):
 
 class AnnSamrakshnaApp(MDApp):
     def build(self):
+        sm = ScreenManager()
+        sm.add_widget(ViewDonationHistory(name="donation_history"))
+        return sm
+
+    def back_to_dashboard(self):
+        self.root.current = "donor_dashboard"
+    def build(self):
         self.title = "Annasamrakshna"
         self.theme_cls.primary_palette = "DeepOrange"
         self.screen_manager = Builder.load_string(KV)
@@ -1480,6 +1564,8 @@ class AnnSamrakshnaApp(MDApp):
         self.ngos = []
         self.is_donor = False
         self.current_user_id = None  # Store the current user's ID
+
+
         return self.screen_manager
 
     def change_screen(self, screen_name):
@@ -1493,8 +1579,9 @@ class AnnSamrakshnaApp(MDApp):
             toast("Please enter username and password")
             return
 
-        donor_ref = db.reference("donors")
-        donor_data = donor_ref.child(username).get()
+    # Get donor data
+        donor_ref = db.reference("donors").child(username)  # ✅ Correct way to access a child in Realtime DB
+        donor_data = donor_ref.get()
 
         if donor_data and bcrypt.checkpw(password.encode('utf-8'), donor_data["password"].encode('utf-8')):
             self.is_donor = True
@@ -1503,8 +1590,9 @@ class AnnSamrakshnaApp(MDApp):
             toast("Login successful!")
             return
 
-        ngo_ref = db.reference("ngos")
-        ngo_data = ngo_ref.child(username).get()
+    # Get NGO data
+        ngo_ref = db.reference("ngos").child(username)  # ✅ Correct for NGO authentication
+        ngo_data = ngo_ref.get()
 
         if ngo_data and bcrypt.checkpw(password.encode('utf-8'), ngo_data["password"].encode('utf-8')):
             self.is_donor = False
