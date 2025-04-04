@@ -53,6 +53,7 @@ MDNavigationLayout:
         ViewNGOsScreen:
         ViewDetailNgoScreen:
         ViewDonationHistory:
+        ViewDonationHistoryDetail:
         
         HomeNGOScreen:
         ViewDonationsNgoScreen:
@@ -455,6 +456,50 @@ MDNavigationLayout:
         ScrollView:
             MDList:
                 id: donation_list
+
+<ViewDonationHistoryDetail>:
+    name: "donation_history_detail"
+
+    BoxLayout:
+        orientation: 'vertical'
+        
+        MDTopAppBar:
+            title: "Donation History Details"
+            md_bg_color: 205/255, 133/255, 63/255
+            left_action_items: [["arrow-left", lambda x: app.change_screen("donation_history")]]
+
+        ScrollView:
+            MDBoxLayout:
+                orientation: 'vertical'
+                padding: dp(50)
+                spacing: dp(50)
+                size_hint_y: None
+                height: self.minimum_height
+
+                MDLabel:
+                    id: food_type
+                    text: "Food Type: "
+                    theme_text_color: "Primary"
+
+                MDLabel:
+                    id: quantity
+                    text: "Quantity: "
+                    theme_text_color: "Primary"
+
+                MDLabel:
+                    id: status
+                    text: "Status: "
+                    theme_text_color: "Primary"
+
+                MDLabel:
+                    id: location
+                    text: "Location: "
+                    theme_text_color: "Primary"
+
+                MDLabel:
+                    id: timestamp
+                    text: "Timestamp: "
+                    theme_text_color: "Primary"
 
 
 <ViewNGOsScreen>:
@@ -1004,12 +1049,12 @@ class HomeNGOScreen(Screen):
     def get_current_ngo_id(self):
         """Get the current NGO's ID from the app."""
         app = App.get_running_app()
-        return app.current_user_id  
+        return app.current_user_id  # Assuming you store the current NGO's ID in the app
 
     def navigate_to_profile(self):
         self.manager.current = 'profile'
         profile_screen = self.manager.get_screen('profile')
-        profile_screen.load_user_details() 
+        profile_screen.load_user_details()  # Load user details when navigating
         
     def logout(self):
         self.ids.nav_drawer_ngo.set_state("close")
@@ -1092,14 +1137,13 @@ class ViewDonationHistory(Screen):
 
     def on_enter(self):
         """This runs when the screen is entered."""
-        self.user_name = self.get_current_user_name()  
+        self.user_name = self.get_current_user_name() 
         self.load_donation_history()
 
     def get_current_user_name(self):
         """Fetch the currently logged-in user's username from the main app."""
-        app = MDApp.get_running_app() 
-        return app.current_user_id  
-
+        app = MDApp.get_running_app()  
+        return app.current_user_id 
     def load_donation_history(self):
         """Fetch and display donation history."""
         user_name = self.user_name  
@@ -1109,16 +1153,23 @@ class ViewDonationHistory(Screen):
 
         donations = self.get_donation_history(user_name)
 
-        donation_list = self.ids.donation_list 
+        donation_list = self.ids.donation_list  
         donation_list.clear_widgets()
 
         if not donations:
             donation_list.add_widget(OneLineListItem(text="No donation history found."))
             return
 
-        for food_type, quantity, status, location, timestamp in donations:
+        for donation in donations:
+            food_type, quantity, status, location, timestamp = donation
             donation_text = f"{food_type} - {quantity} - {status} - {location} - {timestamp}"
-            donation_list.add_widget(OneLineListItem(text=donation_text))
+
+           
+            item = OneLineListItem(
+                text=donation_text,
+                on_release=lambda x, d=donation: self.show_donation_detail(d)
+            )
+            donation_list.add_widget(item)
 
     def get_donation_history(self, user_name):
         """Fetch donation history from Firebase Realtime Database using user_name."""
@@ -1133,6 +1184,41 @@ class ViewDonationHistory(Screen):
                  data.get("status", "N/A"), 
                  data.get("location", "N/A"),
                  data.get("timestamp", "No Date")) for key, data in donations.items()]
+
+    def show_donation_detail(self, donation):
+        """Navigate to the detail screen with the selected donation data."""
+        app = MDApp.get_running_app()
+
+        
+        screen_manager = app.root.ids.screen_manager  # Ensure this ID exists in KV file
+
+       
+        detail_screen = screen_manager.get_screen("donation_history_detail")
+
+      
+        donation_dict = {
+            "Food Type": donation[0],
+            "Quantity": donation[1],
+            "Status": donation[2],
+            "Location": donation[3],
+            "Timestamp": donation[4]
+        }
+
+        detail_screen.update_details(donation_dict)
+
+       
+        screen_manager.current = "donation_history_detail"
+
+
+class ViewDonationHistoryDetail(Screen):
+    def update_details(self, donation_data):
+        """Update the details of the selected donation."""
+        self.ids.food_type.text = f"Food Type: {donation_data.get('Food Type', 'N/A')}"
+        self.ids.quantity.text = f"Quantity: {donation_data.get('Quantity', 'N/A')}"
+        self.ids.status.text = f"Status: {donation_data.get('Status', 'N/A')}"
+        self.ids.location.text = f"Location: {donation_data.get('Location', 'N/A')}"
+        self.ids.timestamp.text = f"Timestamp: {donation_data.get('Timestamp', 'N/A')}"
+
 
 class ViewNGOsScreen(Screen):
     def on_pre_enter(self):
@@ -1580,7 +1666,7 @@ class AnnSamrakshnaApp(MDApp):
             return
 
     # Get donor data
-        donor_ref = db.reference("donors").child(username)  # ✅ Correct way to access a child in Realtime DB
+        donor_ref = db.reference("donors").child(username) 
         donor_data = donor_ref.get()
 
         if donor_data and bcrypt.checkpw(password.encode('utf-8'), donor_data["password"].encode('utf-8')):
@@ -1591,7 +1677,7 @@ class AnnSamrakshnaApp(MDApp):
             return
 
     # Get NGO data
-        ngo_ref = db.reference("ngos").child(username)  # ✅ Correct for NGO authentication
+        ngo_ref = db.reference("ngos").child(username) 
         ngo_data = ngo_ref.get()
 
         if ngo_data and bcrypt.checkpw(password.encode('utf-8'), ngo_data["password"].encode('utf-8')):
