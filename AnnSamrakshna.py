@@ -1004,12 +1004,12 @@ class HomeNGOScreen(Screen):
     def get_current_ngo_id(self):
         """Get the current NGO's ID from the app."""
         app = App.get_running_app()
-        return app.current_user_id  # Assuming you store the current NGO's ID in the app
+        return app.current_user_id  
 
     def navigate_to_profile(self):
         self.manager.current = 'profile'
         profile_screen = self.manager.get_screen('profile')
-        profile_screen.load_user_details()  # Load user details when navigating
+        profile_screen.load_user_details() 
         
     def logout(self):
         self.ids.nav_drawer_ngo.set_state("close")
@@ -1097,19 +1097,19 @@ class ViewDonationHistory(Screen):
 
     def get_current_user_name(self):
         """Fetch the currently logged-in user's username from the main app."""
-        app = MDApp.get_running_app()  # ✅ Get instance of AnnSamrakshnaApp
-        return app.current_user_id  # ✅ Fetch the stored username
+        app = MDApp.get_running_app() 
+        return app.current_user_id  
 
     def load_donation_history(self):
         """Fetch and display donation history."""
-        user_name = self.user_name  # ✅ Use stored username
+        user_name = self.user_name  
         if not user_name:
             print("⚠️ Username is missing!")
             return
 
         donations = self.get_donation_history(user_name)
 
-        donation_list = self.ids.donation_list  # ✅ Get the list view
+        donation_list = self.ids.donation_list 
         donation_list.clear_widgets()
 
         if not donations:
