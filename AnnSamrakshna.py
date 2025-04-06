@@ -46,7 +46,10 @@ MDNavigationLayout:
         RegisterScreen:
         RegisterDonorScreen:
         RegisterNGOScreen:
+
+        AdminDashboardScreen:
         
+
         HomeDonorScreen:
         DonateFoodScreen:
         ViewDonationsScreen:
@@ -97,7 +100,7 @@ MDNavigationLayout:
             spacing: "10dp"
             md_bg_color: 235/255, 220/255, 199/255, 1
             Image:
-                source: 'D:/Annsamrakshna/assets/logo/Annsamrakshna.png'
+                source: 'D:\Annsamrakshna\logo\Annsamrakshna-removebg-preview.png'
                 size_hint: (0.8, 0.7)
                 pos_hint: {"center_x": 0.5}
                 keep_ratio: True
@@ -290,6 +293,59 @@ MDNavigationLayout:
                 text_color: 1, 1, 1, 1 
                 on_release: app.register_ngo(); 
 
+<AdminDashboardScreen>:
+    name: 'admin_dashboard' 
+    BoxLayout:
+        orientation: 'vertical'
+    
+        MDTopAppBar:
+            title: "Admin Dashboard"
+            left_action_items: [["menu", lambda x: root.ids.nav_drawer_donor.set_state("open")]]
+            md_bg_color: 205/255, 133/255, 63/255,
+        
+        MDBoxLayout:
+            orientation: 'vertical'
+            padding: "20dp"
+            md_bg_color: 235/255, 220/255, 199/255, 1
+            Image:
+                source: 'D:\Annsamrakshna\logo\Annsamrakshna-removebg-preview.png'
+                size_hint: (0.5, 0.5)
+                pos_hint: {"center_x": 0.5}
+                keep_ratio: True
+                allow_stretch: True
+            MDBoxLayout:
+                orientation: 'vertical'
+                padding: [20,80]
+                spacing: dp(30)
+
+
+                MDRaisedButton:
+                    text: "View Donors"
+                    pos_hint: {"center_x": 0.5}
+                    size_hint: (0.8, 0)
+                    md_bg_color: 205/255, 133/255, 63/255,  
+                    
+
+                MDRaisedButton:
+                    text: "View NGOs"
+                    pos_hint: {"center_x": 0.5}
+                    size_hint: (0.8, 0) 
+                    md_bg_color: 205/255, 133/255, 63/255,
+                    on_release: app.change_screen('view_ngos')
+
+
+    MDNavigationDrawer:
+        id: nav_drawer_donor
+        md_bg_color: 235/255, 220/255, 199/255, 1
+
+        MDNavigationDrawerMenu:
+            MDNavigationDrawerHeader:
+                title: "Menu"
+                spacing: "18dp"
+                md_bg_color: 235/255, 220/255, 199/255, 1
+                         
+
+                     
 <HomeDonorScreen>:
     name: 'home_donor'
     BoxLayout:
@@ -305,7 +361,7 @@ MDNavigationLayout:
             padding: "20dp"
             md_bg_color: 235/255, 220/255, 199/255, 1
             Image:
-                source: 'D:/Annsamrakshna/assets/logo/Annsamrakshna.png'
+                source: 'D:\Annsamrakshna\logo\Annsamrakshna-removebg-preview.png'
                 size_hint: (0.5, 0.5)
                 pos_hint: {"center_x": 0.5}
                 keep_ratio: True
@@ -510,7 +566,7 @@ MDNavigationLayout:
         MDTopAppBar:
             title: "View NGOs"
             md_bg_color: 205/255, 133/255, 63/255,
-            left_action_items: [["arrow-left", lambda x: app.change_screen('home_donor')]]
+            left_action_items: [["arrow-left", lambda x: app.change_screen('home_donor' if app.is_donor else 'admin_dashboard')]]
         
         MDBoxLayout:
             orientation: 'vertical'
@@ -594,7 +650,7 @@ MDNavigationLayout:
             padding: "20dp"
             md_bg_color: 235/255, 220/255, 199/255, 1
             Image:
-                source: 'D:/Annsamrakshna/assets/logo/Annsamrakshna.png'
+                source: 'D:\Annsamrakshna\logo\Annsamrakshna-removebg-preview.png'
                 size_hint: (0.5, 0.5)
                 pos_hint: {"center_x": 0.5}
                 keep_ratio: True
@@ -1010,6 +1066,11 @@ class RegisterDonorScreen(Screen):
 class RegisterNGOScreen(Screen):
     pass
 
+class AdminDashboardScreen(Screen):
+    pass
+
+
+
 class HomeDonorScreen(Screen):
     def navigate_to_profile(self):
         self.manager.current = 'profile'
@@ -1133,27 +1194,33 @@ class ViewDonationsScreen(Screen):
 class ViewDonationHistory(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.user_name = None  
+        self.user_name = None  # Initialize user_name (donor's username)
 
     def on_enter(self):
         """This runs when the screen is entered."""
-        self.user_name = self.get_current_user_name() 
+        self.user_name = self.get_current_user_name()  #  Fetch logged-in user
         self.load_donation_history()
 
     def get_current_user_name(self):
         """Fetch the currently logged-in user's username from the main app."""
-        app = MDApp.get_running_app()  
-        return app.current_user_id 
+        app = MDApp.get_running_app()  # Get instance of AnnSamrakshnaApp
+        return app.current_user_id  #  Fetch the stored username
+
     def load_donation_history(self):
         """Fetch and display donation history."""
-        user_name = self.user_name  
+        user_name = self.user_name  # Use stored username
+        
+        print(f"DEBUG: Current username - {user_name}")  # Add this line
+    
+        donations = self.get_donation_history(user_name)
+        print(f"DEBUG: Donations fetched - {donations}") 
         if not user_name:
             print("⚠️ Username is missing!")
             return
 
         donations = self.get_donation_history(user_name)
 
-        donation_list = self.ids.donation_list  
+        donation_list = self.ids.donation_list  # Get the list view
         donation_list.clear_widgets()
 
         if not donations:
@@ -1164,7 +1231,7 @@ class ViewDonationHistory(Screen):
             food_type, quantity, status, location, timestamp = donation
             donation_text = f"{food_type} - {quantity} - {status} - {location} - {timestamp}"
 
-           
+            #  Create a clickable list item
             item = OneLineListItem(
                 text=donation_text,
                 on_release=lambda x, d=donation: self.show_donation_detail(d)
@@ -1190,12 +1257,12 @@ class ViewDonationHistory(Screen):
         app = MDApp.get_running_app()
 
         
-        screen_manager = app.root.ids.screen_manager  # Ensure this ID exists in KV file
-
-       
-        detail_screen = screen_manager.get_screen("donation_history_detail")
+        screen_manager = app.root.ids.screen_manager  
 
       
+        detail_screen = screen_manager.get_screen("donation_history_detail")
+
+        
         donation_dict = {
             "Food Type": donation[0],
             "Quantity": donation[1],
@@ -1204,9 +1271,10 @@ class ViewDonationHistory(Screen):
             "Timestamp": donation[4]
         }
 
+        
         detail_screen.update_details(donation_dict)
 
-       
+      
         screen_manager.current = "donation_history_detail"
 
 
@@ -1664,9 +1732,14 @@ class AnnSamrakshnaApp(MDApp):
         if not username or not password:
             toast("Please enter username and password")
             return
-
+        
+        #Admin dashboard
+        if username == "admin123" and password == "123":
+            self.change_screen('admin_dashboard')  # Redirect to Admin Dashboard
+            toast("Admin login successful!")
+            return
     # Get donor data
-        donor_ref = db.reference("donors").child(username) 
+        donor_ref = db.reference("donors").child(username)  # Correct way to access a child in Realtime DB
         donor_data = donor_ref.get()
 
         if donor_data and bcrypt.checkpw(password.encode('utf-8'), donor_data["password"].encode('utf-8')):
@@ -1677,7 +1750,7 @@ class AnnSamrakshnaApp(MDApp):
             return
 
     # Get NGO data
-        ngo_ref = db.reference("ngos").child(username) 
+        ngo_ref = db.reference("ngos").child(username)  # Correct for NGO authentication
         ngo_data = ngo_ref.get()
 
         if ngo_data and bcrypt.checkpw(password.encode('utf-8'), ngo_data["password"].encode('utf-8')):
