@@ -301,7 +301,6 @@ MDNavigationLayout:
     
         MDTopAppBar:
             title: "Admin Dashboard"
-            left_action_items: [["menu", lambda x: root.ids.nav_drawer_donor.set_state("open")]]
             md_bg_color: 205/255, 133/255, 63/255,
         
         MDBoxLayout:
@@ -348,15 +347,7 @@ MDNavigationLayout:
             MDList:
                 id: donor_list
                     
-    MDNavigationDrawer:
-        id: nav_drawer_donor
-        md_bg_color: 235/255, 220/255, 199/255, 1
-
-        MDNavigationDrawerMenu:
-            MDNavigationDrawerHeader:
-                title: "Menu"
-                spacing: "18dp"
-                md_bg_color: 235/255, 220/255, 199/255, 1
+    
                          
 <DonorDetailsScreen>:
     name: "donor_details"
