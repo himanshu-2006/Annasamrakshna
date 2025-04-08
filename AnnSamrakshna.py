@@ -9,7 +9,7 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.navigationdrawer import MDNavigationDrawer, MDNavigationLayout, MDNavigationDrawerMenu, MDNavigationDrawerHeader, MDNavigationDrawerItem
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.core.window import Window
-import webbrowser  
+import webbrowser
 import firebase_admin
 from firebase_admin import credentials, db, firestore
 from firebase_admin import credentials, storage
@@ -25,7 +25,7 @@ from kivymd.uix.list import IconLeftWidget
 from kivy.app import App
  
 # Initialize Firebase
-cred = credentials.Certificate(r"")#add path to your sdk file
+cred = credentials.Certificate(r")#add path to your sdk file
 firebase_admin.initialize_app(cred, {
     'databaseURL': '', #copy the firebase database url
     'storageBucket': '' 
@@ -48,7 +48,8 @@ MDNavigationLayout:
         RegisterNGOScreen:
 
         AdminDashboardScreen:
-        
+        ViewDonorsScreen:
+        DonorDetailsScreen:
 
         HomeDonorScreen:
         DonateFoodScreen:
@@ -324,7 +325,7 @@ MDNavigationLayout:
                     pos_hint: {"center_x": 0.5}
                     size_hint: (0.8, 0)
                     md_bg_color: 205/255, 133/255, 63/255,  
-                    
+                    on_release: app.change_screen('view_donors')
 
                 MDRaisedButton:
                     text: "View NGOs"
@@ -333,7 +334,20 @@ MDNavigationLayout:
                     md_bg_color: 205/255, 133/255, 63/255,
                     on_release: app.change_screen('view_ngos')
 
+<ViewDonorsScreen>:
+    name: "view_donors"
+    BoxLayout:
+        orientation: "vertical"
 
+        MDTopAppBar:
+            title: "Donors List"
+            left_action_items: [["arrow-left", lambda x: app.change_screen("admin_dashboard")]]
+            md_bg_color: 205/255, 133/255, 63/255
+
+        ScrollView:
+            MDList:
+                id: donor_list
+                    
     MDNavigationDrawer:
         id: nav_drawer_donor
         md_bg_color: 235/255, 220/255, 199/255, 1
@@ -1069,7 +1083,33 @@ class RegisterNGOScreen(Screen):
 class AdminDashboardScreen(Screen):
     pass
 
+class ViewDonorsScreen(Screen):
+    def on_enter(self):
+        """Fetch donors when screen is loaded."""
+        self.fetch_donors()
 
+    def fetch_donors(self):
+        """Retrieve donors from Firebase Realtime Database."""
+        donors_ref = db.reference("donors")
+        donors = donors_ref.get()
+
+        donor_list = self.ids.donor_list
+        donor_list.clear_widgets()
+
+        if donors:
+            for donor_id, donor_info in donors.items():
+                item = OneLineListItem(
+                    text=donor_info.get("full_name", "Unknown"),
+                    on_release=lambda x, donor_info=donor_info: self.open_donor_details(donor_info)
+                )
+                donor_list.add_widget(item)
+
+    @mainthread
+    def open_donor_details(self, donor_info):
+        """Pass selected donor info to DonorDetailsScreen."""
+        donor_details_screen = self.manager.get_screen("donor_details")
+        donor_details_screen.set_donor_info(donor_info)
+        self.manager.current = "donor_details"
 
 class HomeDonorScreen(Screen):
     def navigate_to_profile(self):
