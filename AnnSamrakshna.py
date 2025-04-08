@@ -358,7 +358,43 @@ MDNavigationLayout:
                 spacing: "18dp"
                 md_bg_color: 235/255, 220/255, 199/255, 1
                          
+<DonorDetailsScreen>:
+    name: "donor_details"
+    BoxLayout:
+        orientation: "vertical"
 
+        MDTopAppBar:
+            title: "Donor Details"
+            left_action_items: [["arrow-left", lambda x: app.change_screen("view_donors")]]
+            md_bg_color: 205/255, 133/255, 63/255
+
+        ScrollView:
+            MDBoxLayout:
+                orientation: "vertical"
+                spacing: "30dp"
+                padding: "20dp"
+                size_hint_y: None
+                height: self.minimum_height
+
+                MDLabel:
+                    id: donor_name
+                    text: "Donor Name: "
+                    font_style: "H6"
+
+                MDLabel:
+                    id: donor_email
+                    text: "Email: "
+
+                MDLabel:
+                    id: donor_phone
+                    text: "Phone: "
+
+                MDLabel:
+                    text: "Donation History:"
+                    font_style: "H6"
+
+                MDList:
+                    id: donation_history_admin
                      
 <HomeDonorScreen>:
     name: 'home_donor'
@@ -1110,6 +1146,30 @@ class ViewDonorsScreen(Screen):
         donor_details_screen = self.manager.get_screen("donor_details")
         donor_details_screen.set_donor_info(donor_info)
         self.manager.current = "donor_details"
+class DonorDetailsScreen(Screen):
+    def set_donor_info(self, donor_info):
+        """Set donor details on the screen."""
+        self.ids.donor_name.text = f"Donor Name: {donor_info.get('full_name', 'Unknown')}"
+        self.ids.donor_email.text = f"Email: {donor_info.get('email', 'Unknown')}"
+        self.ids.donor_phone.text = f"Phone: {donor_info.get('phone', 'Unknown')}"
+
+        # Fetch donation history
+        self.fetch_donation_history(donor_info.get("full_name", ""))
+
+    def fetch_donation_history(self, donor_name):
+        """Retrieve donation history from Firebase."""
+        donations_ref = db.reference("donations")
+        donations = donations_ref.get()
+
+        donation_list = self.ids.donation_history_admin
+        donation_list.clear_widgets()
+
+        if donations:
+            for donation_id, donation_info in donations.items():
+                if donation_info.get("donor_name") == donor_name:
+                    donation_list.add_widget(
+                        OneLineListItem(text=f"{donation_info.get('food_type', 'Unknown')} - {donation_info.get('quantity', 'Unknown')}")
+                    )
 
 class HomeDonorScreen(Screen):
     def navigate_to_profile(self):
