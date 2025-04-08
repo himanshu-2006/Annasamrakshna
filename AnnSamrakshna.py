@@ -25,7 +25,7 @@ from kivymd.uix.list import IconLeftWidget
 from kivy.app import App
  
 # Initialize Firebase
-cred = credentials.Certificate(r")#add path to your sdk file
+cred = credentials.Certificate(r"")#add path to your sdk file
 firebase_admin.initialize_app(cred, {
     'databaseURL': '', #copy the firebase database url
     'storageBucket': '' 
