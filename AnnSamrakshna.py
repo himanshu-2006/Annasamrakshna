@@ -101,7 +101,7 @@ MDNavigationLayout:
             spacing: "10dp"
             md_bg_color: 235/255, 220/255, 199/255, 1
             Image:
-                source: 'D:\Annsamrakshna\logo\Annsamrakshna-removebg-preview.png'
+                source: 'C:/Users/Nikhil Samanta/OneDrive/Desktop/Annasamrakshna/Annasamrakshna/assets/logo/Annsamrakshna-removebg-preview.png'
                 size_hint: (0.8, 0.7)
                 pos_hint: {"center_x": 0.5}
                 keep_ratio: True
@@ -308,7 +308,7 @@ MDNavigationLayout:
             padding: "20dp"
             md_bg_color: 235/255, 220/255, 199/255, 1
             Image:
-                source: 'D:\Annsamrakshna\logo\Annsamrakshna-removebg-preview.png'
+                source: 'C:/Users/Nikhil Samanta/OneDrive/Desktop/Annasamrakshna/Annasamrakshna/assets/logo/Annsamrakshna-removebg-preview.png'
                 size_hint: (0.5, 0.5)
                 pos_hint: {"center_x": 0.5}
                 keep_ratio: True
@@ -332,6 +332,7 @@ MDNavigationLayout:
                     size_hint: (0.8, 0) 
                     md_bg_color: 205/255, 133/255, 63/255,
                     on_release: app.change_screen('view_ngos')
+
 
 <ViewDonorsScreen>:
     name: "view_donors"
@@ -402,7 +403,7 @@ MDNavigationLayout:
             padding: "20dp"
             md_bg_color: 235/255, 220/255, 199/255, 1
             Image:
-                source: 'D:\Annsamrakshna\logo\Annsamrakshna-removebg-preview.png'
+                source: 'C:/Users/Nikhil Samanta/OneDrive/Desktop/Annasamrakshna/Annasamrakshna/assets/logo/Annsamrakshna-removebg-preview.png'
                 size_hint: (0.5, 0.5)
                 pos_hint: {"center_x": 0.5}
                 keep_ratio: True
@@ -691,7 +692,7 @@ MDNavigationLayout:
             padding: "20dp"
             md_bg_color: 235/255, 220/255, 199/255, 1
             Image:
-                source: 'D:\Annsamrakshna\logo\Annsamrakshna-removebg-preview.png'
+                source: 'C:/Users/Nikhil Samanta/OneDrive/Desktop/Annasamrakshna/Annasamrakshna/assets/logo/Annsamrakshna-removebg-preview.png'
                 size_hint: (0.5, 0.5)
                 pos_hint: {"center_x": 0.5}
                 keep_ratio: True
@@ -752,11 +753,11 @@ MDNavigationLayout:
                 md_bg_color: 235/255, 220/255, 199/255, 1
                 on_release: app.change_screen('view_ngos_ngo'); nav_drawer_ngo.set_state("close")
 
-            # MDNavigationDrawerItem:
-            #     text: "Gallery"
-            #     icon: "image"
-            #     md_bg_color: 235/255, 220/255, 199/255, 1
-            #     on_release: app.change_screen('gallery'); nav_drawer_ngo.set_state("close")
+            MDNavigationDrawerItem:
+                text: "Gallery"
+                icon: "image"
+                md_bg_color: 235/255, 220/255, 199/255, 1
+                on_release: app.change_screen('gallery'); nav_drawer_ngo.set_state("close")
             
             MDNavigationDrawerItem:
                 text: "Settings"
@@ -1068,7 +1069,7 @@ MDNavigationLayout:
         MDTopAppBar:
             title: "Gallery"
             md_bg_color: 205/255, 133/255, 63/255,
-            left_action_items: [["arrow-left", lambda x: app.change_screen('home_donor')]]
+            left_action_items: [["arrow-left", lambda x: app.change_screen('home_donor' if app.is_donor else 'home_ngo')]]
         
         MDBoxLayout:
             orientation: 'vertical'
