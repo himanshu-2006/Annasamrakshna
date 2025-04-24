@@ -13,7 +13,7 @@ import webbrowser
 import firebase_admin
 from firebase_admin import credentials, db, firestore
 from firebase_admin import credentials, storage
-from functools import partial
+from functools import partial 
 from kivymd.toast import toast
 import bcrypt
 from kivy.clock import Clock
@@ -30,7 +30,6 @@ firebase_admin.initialize_app(cred, {
     'databaseURL': '', #copy the firebase database url
     'storageBucket': '' 
 })
-
 
 
 
@@ -101,7 +100,7 @@ MDNavigationLayout:
             spacing: "10dp"
             md_bg_color: 235/255, 220/255, 199/255, 1
             Image:
-                source: 'C:/Users/Nikhil Samanta/OneDrive/Desktop/Annasamrakshna/Annasamrakshna/assets/logo/Annsamrakshna-removebg-preview.png'
+                source: 'D:\Annsamrakshna\logo\Annsamrakshna-removebg-preview.png'
                 size_hint: (0.8, 0.7)
                 pos_hint: {"center_x": 0.5}
                 keep_ratio: True
@@ -308,7 +307,7 @@ MDNavigationLayout:
             padding: "20dp"
             md_bg_color: 235/255, 220/255, 199/255, 1
             Image:
-                source: 'C:/Users/Nikhil Samanta/OneDrive/Desktop/Annasamrakshna/Annasamrakshna/assets/logo/Annsamrakshna-removebg-preview.png'
+                source: 'D:\Annsamrakshna\logo\Annsamrakshna-removebg-preview.png'
                 size_hint: (0.5, 0.5)
                 pos_hint: {"center_x": 0.5}
                 keep_ratio: True
@@ -332,6 +331,13 @@ MDNavigationLayout:
                     size_hint: (0.8, 0) 
                     md_bg_color: 205/255, 133/255, 63/255,
                     on_release: app.change_screen('view_ngos')
+
+                MDRaisedButton:
+                    text: "Logout"
+                    pos_hint: {"center_x": 0.5}
+                    size_hint: (0.8, 0) 
+                    md_bg_color: 205/255, 133/255, 63/255,
+                    on_release: root.logout_admin()
 
 
 <ViewDonorsScreen>:
@@ -403,7 +409,7 @@ MDNavigationLayout:
             padding: "20dp"
             md_bg_color: 235/255, 220/255, 199/255, 1
             Image:
-                source: 'C:/Users/Nikhil Samanta/OneDrive/Desktop/Annasamrakshna/Annasamrakshna/assets/logo/Annsamrakshna-removebg-preview.png'
+                source: 'D:\Annsamrakshna\logo\Annsamrakshna-removebg-preview.png'
                 size_hint: (0.5, 0.5)
                 pos_hint: {"center_x": 0.5}
                 keep_ratio: True
@@ -692,7 +698,7 @@ MDNavigationLayout:
             padding: "20dp"
             md_bg_color: 235/255, 220/255, 199/255, 1
             Image:
-                source: 'C:/Users/Nikhil Samanta/OneDrive/Desktop/Annasamrakshna/Annasamrakshna/assets/logo/Annsamrakshna-removebg-preview.png'
+                source: 'D:\Annsamrakshna\logo\Annsamrakshna-removebg-preview.png'
                 size_hint: (0.5, 0.5)
                 pos_hint: {"center_x": 0.5}
                 keep_ratio: True
@@ -1109,7 +1115,10 @@ class RegisterNGOScreen(Screen):
     pass
 
 class AdminDashboardScreen(Screen):
-    pass
+    def logout_admin(self):
+        self.manager.current = 'login'  # Use the correct screen name
+        from kivymd.toast import toast
+        toast("Logged out successfully.")
 
 class ViewDonorsScreen(Screen):
     def on_enter(self):
